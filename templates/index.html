@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CTF Agent Monitor</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header><div><h1>⚡ CTF Terminal Agent</h1><p>Ollama · Qwen2.5 7B · Observe → Hypothesize → Act → Verify</p></div><div id="status">IDLE</div></header>
+<main>
+<div class="grid">
+<section class="card">
+  <h2>Automatic progression</h2>
+  <p>The controller verifies discovered credentials against the next Bandit account before advancing.</p>
+</section>
+<section class="card"><label>USER</label><strong id="user">-</strong></section>
+<section class="card"><label>STEP</label><strong id="step">-</strong></section>
+<section class="card"><label>STATUS</label><strong id="status2">-</strong></section>
+<section class="card"><label>CANDIDATE</label><strong id="candidate">-</strong></section>
+</div>
+<section><h2>Mission</h2><pre id="mission">-</pre></section>
+<section><h2>Qwen analysis</h2><pre id="plan">-</pre></section>
+<section><h2>Hypothesis</h2><pre id="hypothesis">-</pre></section>
+<section><h2>Next command</h2><pre id="command">-</pre></section>
+<section><h2>Terminal output</h2><pre id="output">-</pre></section>
+<section><h2>Event stream</h2><div id="events"></div></section>
+</main>
+<script>
+async function refresh(){
+ const d=await fetch('/api/state').then(r=>r.json()),s=d.state;
+ for(const k of ['user','step','mission','plan','hypothesis','command','output','candidate']) document.getElementById(k).textContent=s[k]||'-';
+ document.getElementById('status2').textContent=s.status||'-';
+ document.getElementById('status').textContent=(s.status||'IDLE').toUpperCase();
+ document.getElementById('events').innerHTML=d.events.map(e =>
+   `<article><b>step ${e.step} · ${e.kind}</b><small>${new Date(e.ts*1000).toLocaleTimeString()}</small><pre>${escapeHtml(JSON.stringify(e.data,null,2))}</pre></article>`
+ ).join('');
+}
+function escapeHtml(x){return x.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')}
+refresh(); setInterval(refresh,1000);
+</script>
+</body>
+</html>
